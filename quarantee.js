@@ -1,11 +1,8 @@
 // Global variables
 var time = 0
 var quarantees = []
-var quaranteesInRecArea = []
-var quaranteesInSmokingArea = []
-var quaranteesInSeatingArea = []
 
-var namePrinted = false
+var recArea = null
 
 
 // Global quarantee variables
@@ -231,14 +228,15 @@ function createRecArea() {
 	var recArea = {
 
 		// Environmental properties
-		isRaining = false,
+		isRaining: false,
 
 		// Area properties
+		occupants: [],
 		seatingArea: {
 			capacity: 12,
 			occupants: [],
 			isFull: false
-		}
+		},
 
 		smokingArea: {
 			capacity: 6,
@@ -281,7 +279,7 @@ function executeFirstAction(quarantee) {
 // Add a quarantee to the rec area
 function addQuaranteeToRecArea() {
 	quarantee = getRandomElement(quarantees, true)	// get a quarantee and remove it from the array
-	quaranteesInRecArea.push(quarantee)	// add to the "In Rec Area" array
+	recArea.occupants.push(quarantee)	// add to the recArea.occupants array
 	quarantee.enter()
 }
 
@@ -290,6 +288,9 @@ function eventBeginPlay() {
 
 	// Set game FPS
 	setInterval(eventTick, 33); // 33 milliseconds = ~ 30 frames per sec
+
+	// Create rec area
+	recArea = createRecArea()
 
 	// Create a set of quarantees
 	for (var i = 0; i < 5; i++) {
@@ -313,7 +314,7 @@ function eventTick() {
 	}
 
 	// Update active quarantees
-	for (quarantee of quaranteesInRecArea) {
+	for (quarantee of recArea.occupants) {
 		updateQuarantee(quarantee)
 	}
 
