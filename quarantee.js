@@ -221,7 +221,33 @@ function createQuarantee() {
 			print("[Action] " + quarantee.name + " starts a chalk drawing.")
 		},
 	}
-	return quarantee;
+	return quarantee
+}
+
+// Create rec area
+function createRecArea() {
+
+	// Define the rec area
+	var recArea = {
+
+		// Environmental properties
+		isRaining = false,
+
+		// Area properties
+		seatingArea: {
+			capacity: 12,
+			occupants: [],
+			isFull: false
+		}
+
+		smokingArea: {
+			capacity: 6,
+			occupants: [],
+			isFull: false
+		}
+
+	}
+	return recArea
 }
 
 // Update quarantee state function
@@ -243,7 +269,8 @@ function executeFirstAction(quarantee) {
 	}
 	// If they have a book, they will sometimes take a few laps then go to the seating area and read
 	if (quarantee.hasBook) {
-
+		willGoRead = Math.random() < 0.5
+		if (willGoRead) {}
 	}
 
 	// If they are feeling chatty, and they aren't a smoker, they will go to the seating area.
