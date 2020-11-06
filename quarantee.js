@@ -89,6 +89,17 @@ var smokerChance = 0.25
 		return names.join(', ') + ' & ' + lastName;
 	}
 
+	// Check if an object is in an array
+	function containsObject(obj, list) {
+	    var i;
+	    for (i = 0; i < list.length; i++) {
+	        if (list[i] === obj) {
+	            return true;
+	        }
+    	}
+    	return false;
+	}
+
 
 // Create a quarantee
 function createQuarantee() {
@@ -119,6 +130,7 @@ function createQuarantee() {
 		time: 0,
 		state: null,
 		idleTime: 0,
+		state: null,
 
 		// Quarantee functions
 		initialize: function() {
@@ -127,7 +139,7 @@ function createQuarantee() {
 			quarantee.age = getRandomInt(minAge, maxAge - 20)	// Set a random age between 8 and 55
 			quarantee.idleTime = getRandomInt(60, 120) // Choose a random idle time in ms
 			quarantee.cigaretteCount = getRandomInt(1, 5) // Choose how many cigarettes they have
-			quarantee.lapCount = getRandomInt(1, 20)
+			quarantee.lapCount = getRandomInt(1, 20) // Determine how many laps they're gonna do
 
 			// 10% Chance to add 20 years to age.
 			if (getRandomInt(1, 10) == 10) { quarantee.age += 20 }
@@ -188,34 +200,42 @@ function createQuarantee() {
 		enter: function() {
 			print("[Action] " + quarantee.name + " enters the rec area.")
 			quarantee.isActive = true
+			quarantee.state = "EnteringRecArea"
 		},
 		takeALap: function() {
 			print("[Action] " + quarantee.name + " takes a lap.")
-			quarantee.state = null
+			quarantee.state = "TakingLap"
 		},
 		enterSmokingArea: function() {
 			print("[Action] " + quarantee.name + " enters the smoking area.")
+			quarantee.state = "TravellingToSmokingArea"
 		},
 		enterSeatingArea: function() {
 			print("[Action] " + quarantee.name + " enters the seating area.")
+			quarantee.state = "TravellingToSeatingArea"
 		},
 		exit: function() {
 			print("[Action} " + quarantee.name + "leaves the rec area.")
+			quarantee.state = null
 		},
 
 		// Secondary quarantee actions
 		haveASmoke: function(duration) {
 			print("[Action] " + quarantee.name + " lights up a cigarette.")
+			quarantee.state = "Smoking"
 		},
 		readABook: function(duration) {
 			print("[Action] " + quarantee.name + " starts reading a book.")
+			quarantee.state = "Reading"
 		},
 		haveAChat: function(collocutors) {
 			str = "[Action] " + quarantee.name + " starts chatting to " + formatList(collocutors)
 			print(str)
+			quarantee.state = "Chatting"
 		},
 		createChalkDrawing: function(location) {
 			print("[Action] " + quarantee.name + " starts a chalk drawing.")
+			quarantee.state = "Drawing"
 		},
 	}
 	return quarantee
@@ -250,10 +270,14 @@ function createRecArea() {
 
 // Update quarantee state function
 function updateQuarantee(quarantee) {
+
+	// First action
 	quarantee.time += 1
 	if (quarantee.time == quarantee.idleTime) {
 	executeFirstAction(quarantee)
 	}
+
+
 }
 
 // Execute first action
