@@ -179,12 +179,12 @@ function createQuarantee() {
 
 			}()
 
-			// Stamina determined by age, height, weight and smoking status
+			// TODO: Stamina determined by age, height, weight and smoking status
 			quarantee.stamina = function() {
 
 			}()
 
-			// Charisma determined by age and smoking status
+			// TODO: Charisma determined by age and smoking status
 			quarantee.charisma = function() {
 
 			}()
@@ -297,14 +297,16 @@ function updateQuarantee(quarantee) {
 function addQuaranteeToRecArea() {
 	quarantee = getRandomElement(quarantees, true)	// get a quarantee and remove it from the array
 	recArea.occupants.push(quarantee)	// add to the recArea.occupants array
-	quarantee.enter()
 
 	// Define action queue
 	var actions = []
 
+	actions.push(quarantee.enter)
+
+
 	// If they are a smoker, they will always go to the smoking area and light a cigarette
 	if (quarantee.isSmoker) {
-		actions.push(quarantee.enterSmokingArea())
+		actions.push(quarantee.enterSmokingArea)
 	}
 
 	// If they have a book, they will sometimes take a few laps then go to the seating area and read
@@ -316,12 +318,12 @@ function addQuaranteeToRecArea() {
 			willTakeLaps = Math.random(.2)
 			if (willTakeLaps) {
 				for(i = 0; i < quarantee.lapCount; i++){
-					actions.push(quarantee.takeALap())
+					actions.push(quarantee.takeALap)
 				}
 			}
 		}
-		actions.push(quarantee.enterSeatingArea())
-		actions.push(quarantee.readABook())
+		actions.push(quarantee.enterSeatingArea)
+		actions.push(quarantee.readABook)
 	}
 
 	// If they are feeling chatty, and they aren't a smoker, they will go to the seating area. Sometimes doing a few laps first
@@ -331,24 +333,25 @@ function addQuaranteeToRecArea() {
 			willTakeLaps = Math.random(.2)
 			if (willTakeLaps) {
 				for(i = 0; i < quarantee.lapCount; i++){
-					actions.push(quarantee.takeALap())
+					actions.push(quarantee.takeALap)
 				}
 			}
 
-		actions.push(quarantee.enterSeatingArea())
+		actions.push(quarantee.enterSeatingArea)
 	}
 	// Otherwise they'll just do a few laps.
 	else {
 		for(i = 0; i < quarantee.lapCount; i++){
-					actions.push(quarantee.takeALap())
+					actions.push(quarantee.takeALap)
 				}
 	}
 
 	// Then leave
-	actions.push(quarantee.exit())
+	actions.push(quarantee.exit)
 
 	// Add actions to the queue
 	quarantee.actionQueue.push(actions)
+	print(quarantee.actionQueue)
 
 }
 
