@@ -1,5 +1,6 @@
 // Global variables
 var time = 0
+var quaranteeCount = 5
 var quarantees = []
 
 var recArea = null
@@ -118,11 +119,11 @@ function createQuarantee() {
 		// Performance properties
 		stamina: null,
 		charisma: null,
+		intellect: null,
 		feelingChatty: false,
 		hasBook: false,
 		cigaretteCount: 0,
 		lapCount: 0,
-
 
 		// Game properties
 		isActive: false,
@@ -134,6 +135,7 @@ function createQuarantee() {
 		firstAction: true,
 		actionQueue: [],
 		firstLap: true,
+
 
 		// Quarantee functions
 		initialize: function() {
@@ -179,6 +181,7 @@ function createQuarantee() {
 
 			}()
 
+
 			// TODO: Stamina determined by age, height, weight and smoking status
 			quarantee.stamina = function() {
 
@@ -189,15 +192,13 @@ function createQuarantee() {
 
 			}()
 
-			str = "[Quarantee] " + quarantee.name
-		 	+ ", age: " + quarantee.age 
-		 	+ ", height: " + quarantee.height + "cm"
-		 	+ ", weight: " + quarantee.weight + "kg"
-		 	+ " created!"
-			if(quarantee.isSmoker) {
-				str += " They are a smoker!"
-			}
-			print(str)
+			// Intellect
+			quarantee.intellect = getRandomInt(0, 100)
+
+			// % chance of having a book.
+			quarantee.hasBook = function() {
+				return Math.random() < (quarantee.intellect / 100)
+			}()
 
 		},
 		// Primary quarantee actions
@@ -280,6 +281,30 @@ function createRecArea() {
 	return recArea
 }
 
+// Get quarantee status
+function getQuaranteeStatus(quarantee) {
+
+	str = "[Quarantee] " + quarantee.name + "\n"
+ 	+ "    [Age]: " + quarantee.age + "\n"
+ 	+ "    [Height]: " + quarantee.height + "cm\n"
+ 	+ "    [Weight]: " + quarantee.weight + "kg\n"
+ 	+ "    [Stamina]: " + quarantee.stamina + "\n"
+ 	+ "    [Intellect]: " + quarantee.intellect + "\n"
+ 	+ "    [Charisma]: " + quarantee.charisma + "\n"
+ 	status = []
+
+	if(quarantee.isSmoker) {
+		status.push("Smoker")
+	}
+	if(quarantee.hasABook) {
+		status.push("Book")
+	}
+	str += "    [Status]: "
+	str += status.join(", ")
+
+	return str
+}
+
 // Update quarantee state function
 function updateQuarantee(quarantee) {
 
@@ -315,7 +340,7 @@ function addQuaranteeToRecArea() {
 		if (willGoRead) {
 
 			// Sometimes take a few laps first
-			willTakeLaps = Math.random(.2)
+			willTakeLaps = Math.random() < 0.2
 			if (willTakeLaps) {
 				for(i = 0; i < quarantee.lapCount; i++){
 					actions.push(quarantee.takeALap)
@@ -362,14 +387,19 @@ function eventBeginPlay() {
 	setInterval(eventTick, 33); // 33 milliseconds = ~ 30 frames per sec
 
 	// Create rec area
+	print("[Game] Rec area created!")
 	recArea = createRecArea()
 
 	// Create a set of quarantees
-	for (var i = 0; i < 5; i++) {
+	print("[Game] " + quaranteeCount + " quarantees created!\n")
+
+	for (var i = 0; i < quaranteeCount; i++) {
 		quarantee = createQuarantee()
 		quarantee.initialize()
 		quarantees.push(quarantee)
+		print(getQuaranteeStatus(quarantee) + "\n")
 	}
+
 
 
 }
