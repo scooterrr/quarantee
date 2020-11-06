@@ -131,6 +131,9 @@ function createQuarantee() {
 		state: null,
 		idleTime: 0,
 		state: null,
+		firstAction: true,
+		actionQueue: [],
+		firstLap: true,
 
 		// Quarantee functions
 		initialize: function() {
@@ -140,6 +143,7 @@ function createQuarantee() {
 			quarantee.idleTime = getRandomInt(60, 120) // Choose a random idle time in ms
 			quarantee.cigaretteCount = getRandomInt(1, 5) // Choose how many cigarettes they have
 			quarantee.lapCount = getRandomInt(1, 20) // Determine how many laps they're gonna do
+			quarantee.firstAction = true
 
 			// 10% Chance to add 20 years to age.
 			if (getRandomInt(1, 10) == 10) { quarantee.age += 20 }
@@ -203,7 +207,15 @@ function createQuarantee() {
 			quarantee.state = "EnteringRecArea"
 		},
 		takeALap: function() {
-			print("[Action] " + quarantee.name + " takes a lap.")
+			str = "[Action] " + quarantee.name
+			if (quarantee.firstLap) {
+				str += " takes a lap."
+				quarantee.firstLap = false
+			}
+			else {
+				str += " takes another lap."
+			}
+			print(str)
 			quarantee.state = "TakingLap"
 		},
 		enterSmokingArea: function() {
@@ -215,7 +227,7 @@ function createQuarantee() {
 			quarantee.state = "TravellingToSeatingArea"
 		},
 		exit: function() {
-			print("[Action} " + quarantee.name + "leaves the rec area.")
+			print("[Action} " + quarantee.name + " leaves the rec area.")
 			quarantee.state = null
 		},
 
@@ -271,33 +283,14 @@ function createRecArea() {
 // Update quarantee state function
 function updateQuarantee(quarantee) {
 
-	// First action
+	// Increment quarantee time
 	quarantee.time += 1
-	if (quarantee.time == quarantee.idleTime) {
-	executeFirstAction(quarantee)
+
+	// Is this their first action?
+	if (quarantee.firstAction) {
+		// print("[" + quarantee.name + "] Starts their first action") 
+		quarantee.firstAction = false
 	}
-
-
-}
-
-// Execute first action
-function executeFirstAction(quarantee) {
-	print("[" + quarantee.name + "] Starts their first action") 
-	// Determine what they are going to do
-
-	// If they are a smoker, they will always go to the smoking area and light a cigarette
-	if (quarantee.isSmoker) {
-		quarantee.enterSmokingArea()
-	}
-	// If they have a book, they will sometimes take a few laps then go to the seating area and read
-	if (quarantee.hasBook) {
-		willGoRead = Math.random() < 0.5
-		if (willGoRead) {}
-	}
-
-	// If they are feeling chatty, and they aren't a smoker, they will go to the seating area.
-
-	// Otherwise they'll just do a few laps.
 }
 
 // Add a quarantee to the rec area
@@ -305,6 +298,58 @@ function addQuaranteeToRecArea() {
 	quarantee = getRandomElement(quarantees, true)	// get a quarantee and remove it from the array
 	recArea.occupants.push(quarantee)	// add to the recArea.occupants array
 	quarantee.enter()
+
+	// Define action queue
+	var actions = []
+
+	// If they are a smoker, they will always go to the smoking area and light a cigarette
+	if (quarantee.isSmoker) {
+		actions.push(quarantee.enterSmokingArea())
+	}
+
+	// If they have a book, they will sometimes take a few laps then go to the seating area and read
+	else if (quarantee.hasBook) {
+		willGoRead = Math.random() < 0.5
+		if (willGoRead) {
+
+			// Sometimes take a few laps first
+			willTakeLaps = Math.random(.2)
+			if (willTakeLaps) {
+				for(i = 0; i < quarantee.lapCount; i++){
+					actions.push(quarantee.takeALap())
+				}
+			}
+		}
+		actions.push(quarantee.enterSeatingArea())
+		actions.push(quarantee.readABook())
+	}
+
+	// If they are feeling chatty, and they aren't a smoker, they will go to the seating area. Sometimes doing a few laps first
+	else if (quarantee.feelingChatty) {
+
+			// Sometimes take a few laps first
+			willTakeLaps = Math.random(.2)
+			if (willTakeLaps) {
+				for(i = 0; i < quarantee.lapCount; i++){
+					actions.push(quarantee.takeALap())
+				}
+			}
+
+		actions.push(quarantee.enterSeatingArea())
+	}
+	// Otherwise they'll just do a few laps.
+	else {
+		for(i = 0; i < quarantee.lapCount; i++){
+					actions.push(quarantee.takeALap())
+				}
+	}
+
+	// Then leave
+	actions.push(quarantee.exit())
+
+	// Add actions to the queue
+	quarantee.actionQueue.push(actions)
+
 }
 
 // Initialize function
