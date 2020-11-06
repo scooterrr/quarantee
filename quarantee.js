@@ -1,7 +1,7 @@
 // Global variables
 var time = 0
-var gameSpeed = 1
-var quaranteeCount = 1
+var gameSpeed = 2
+var quaranteeCount = 5
 var quarantees = []
 
 var baseLapTime = 160
@@ -320,10 +320,11 @@ function createQuarantee() {
 			// Define action queue
 			var actions = []
 
+			// Quarantee enters the rec area
 			actions.push(quarantee.enter)
 
 
-			// If they are a smoker, they will always go to the smoking area and light a cigarette
+			// If they are a smoker, they will always go to the smoking area first
 			if (quarantee.isSmoker) {
 				actions.push(quarantee.enterSmokingArea)
 			}
@@ -334,7 +335,7 @@ function createQuarantee() {
 				if (willGoRead) {
 
 					// Sometimes take a few laps first
-					willTakeLaps = Math.random() < 0.2
+					willTakeLaps = Math.random() < 0.2 // 20% Chance
 					if (willTakeLaps) {
 						for(i = 0; i < quarantee.lapCount; i++){
 							actions.push(quarantee.takeALap)
@@ -364,6 +365,8 @@ function createQuarantee() {
 							actions.push(quarantee.takeALap)
 						}
 			}
+
+			// TODO: Kids sometimes make chalk drawings.
 
 			// Then leave
 			actions.push(quarantee.exit)
@@ -445,9 +448,6 @@ function updateQuarantee(quarantee) {
 			quarantee.lastActionTime = quarantee.time
 		}
 	}
-
-
-
 }
 
 // Add a quarantee to the rec area
