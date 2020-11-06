@@ -1,6 +1,6 @@
 // Global variables
 var time = 0
-var quaranteeCount = 5
+var quaranteeCount = 1
 var quarantees = []
 
 var baseLapTime = 160
@@ -137,6 +137,7 @@ function createQuarantee() {
 		firstAction: true,
 		actionQueue: [],
 		firstLap: true,
+		firstCigarette: true,
 
 		// Timers
 		time: 0,
@@ -199,11 +200,18 @@ function createQuarantee() {
 
 			// TODO: Charisma determined by age and smoking status
 			quarantee.charisma = function() {
-				return Math.floor(Math.random() * 100)
+				charisma = Math.floor(Math.random() * 100)
+				if ( quarantee.isSmoker ) {
+					charisma *= 4
+				}
+				return charisma
 			}()
 
 			// Intellect
 			quarantee.intellect = getRandomInt(0, 100)
+
+			// If intellect is over 50 they are chatty
+			quarantee.isChatty = quarantee.charisma > 50
 
 			// % chance of having a book.
 			quarantee.hasBook = function() {
@@ -234,6 +242,7 @@ function createQuarantee() {
 			}()
 
 		},
+
 		// Primary quarantee actions
 		enter: function() {
 			print("[Action] " + quarantee.name + " enters the rec area.")
@@ -251,15 +260,22 @@ function createQuarantee() {
 			}
 			print(str)
 			quarantee.state = "TakingLap"
+			quarantee.idleTime = quarantee.lapTime
 
 		},
 		enterSmokingArea: function() {
-			print("[Action] " + quarantee.name + " enters the smoking area.")
+			print("[Action] " + quarantee.name + " heads to the smoking area.")
 			quarantee.state = "TravellingToSmokingArea"
 
+			// On entry
+
+			// Smoke however many cigarettes they brought
+			for( i = 0; i < quarantee.cigaretteCount; i++ ) {
+				quarantee.actionQueue.unshift(quarantee.haveASmoke)
+			}
 		},
 		enterSeatingArea: function() {
-			print("[Action] " + quarantee.name + " enters the seating area.")
+			print("[Action] " + quarantee.name + " heads to the seating area.")
 			quarantee.state = "TravellingToSeatingArea"
 
 		},
@@ -270,12 +286,22 @@ function createQuarantee() {
 
 		// Secondary quarantee actions
 		haveASmoke: function(duration) {
-			print("[Action] " + quarantee.name + " lights up a cigarette.")
+			str = "[Action] " + quarantee.name
+			if (quarantee.firstCigarette) {
+				str += " lights up a cigarette."
+				quarantee.firstCigarette = false
+			}
+			else {
+				str += " lights up another cigarette."
+			}
+			print(str)
 			quarantee.state = "Smoking"
+			quarantee.idleTime = quarantee.smokingTime
 		},
 		readABook: function(duration) {
 			print("[Action] " + quarantee.name + " starts reading a book.")
 			quarantee.state = "Reading"
+			quarantee.idleTime = quarantee.readingTime
 		},
 		haveAChat: function(collocutors) {
 			str = "[Action] " + quarantee.name + " starts chatting to " + formatList(collocutors)
@@ -286,6 +312,66 @@ function createQuarantee() {
 			print("[Action] " + quarantee.name + " starts a chalk drawing.")
 			quarantee.state = "Drawing"
 		},
+
+		// Set quarantee action queue
+		setActionQueue: function() {
+
+			// Define action queue
+			var actions = []
+
+			actions.push(quarantee.enter)
+
+
+			// If they are a smoker, they will always go to the smoking area and light a cigarette
+			if (quarantee.isSmoker) {
+				actions.push(quarantee.enterSmokingArea)
+			}
+
+			// If they have a book, they will sometimes take a few laps then go to the seating area and read
+			else if (quarantee.hasBook) {
+				willGoRead = Math.random() < 0.5
+				if (willGoRead) {
+
+					// Sometimes take a few laps first
+					willTakeLaps = Math.random() < 0.2
+					if (willTakeLaps) {
+						for(i = 0; i < quarantee.lapCount; i++){
+							actions.push(quarantee.takeALap)
+						}
+					}
+				}
+				actions.push(quarantee.enterSeatingArea)
+				actions.push(quarantee.readABook)
+			}
+
+			// If they are feeling chatty, and they aren't a smoker, they will go to the seating area. Sometimes doing a few laps first
+			else if (quarantee.feelingChatty) {
+
+					// Sometimes take a few laps first
+					willTakeLaps = Math.random(.2)
+					if (willTakeLaps) {
+						for(i = 0; i < quarantee.lapCount; i++){
+							actions.push(quarantee.takeALap)
+						}
+					}
+
+				actions.push(quarantee.enterSeatingArea)
+			}
+			// Otherwise they'll just do a few laps.
+			else {
+				for(i = 0; i < quarantee.lapCount; i++){
+							actions.push(quarantee.takeALap)
+						}
+			}
+
+			// Then leave
+			actions.push(quarantee.exit)
+
+			// Add actions to the queue
+			for (action of actions) {
+				quarantee.actionQueue.push(action)
+			}
+		}
 	}
 	return quarantee
 }
@@ -330,10 +416,13 @@ function getQuaranteeStatus(quarantee) {
  	status = []
 
 	if(quarantee.isSmoker) {
-		status.push("Smoker")
+		status.push("Smoker (" + quarantee.cigaretteCount + ")")
 	}
 	if(quarantee.hasABook) {
 		status.push("Book")
+	}
+	if(quarantee.isChatty) {
+		status.push("Chatty")
 	}
 	str += "    [Status]: "
 	str += status.join(", ")
@@ -348,72 +437,23 @@ function updateQuarantee(quarantee) {
 	quarantee.time += 1
 
 	// After the idle time do the next action
-    var nextAction = quarantee.actionQueue.shift();
-    if(nextAction) { 
-        nextAction(); 
-    }
+	if( quarantee.time >= quarantee.lastActionTime + quarantee.idleTime ) {
+		nextAction = quarantee.actionQueue.shift()
+		if( nextAction ) {
+			nextAction()
+			quarantee.lastActionTime = quarantee.time
+		}
+	}
+
+
+
 }
 
 // Add a quarantee to the rec area
 function addQuaranteeToRecArea() {
 	quarantee = getRandomElement(quarantees, true)	// get a quarantee and remove it from the array
 	recArea.occupants.push(quarantee)	// add to the recArea.occupants array
-
-	// Define action queue
-	var actions = []
-
-	actions.push(quarantee.enter)
-
-
-	// If they are a smoker, they will always go to the smoking area and light a cigarette
-	if (quarantee.isSmoker) {
-		actions.push(quarantee.enterSmokingArea)
-	}
-
-	// If they have a book, they will sometimes take a few laps then go to the seating area and read
-	else if (quarantee.hasBook) {
-		willGoRead = Math.random() < 0.5
-		if (willGoRead) {
-
-			// Sometimes take a few laps first
-			willTakeLaps = Math.random() < 0.2
-			if (willTakeLaps) {
-				for(i = 0; i < quarantee.lapCount; i++){
-					actions.push(quarantee.takeALap)
-				}
-			}
-		}
-		actions.push(quarantee.enterSeatingArea)
-		actions.push(quarantee.readABook)
-	}
-
-	// If they are feeling chatty, and they aren't a smoker, they will go to the seating area. Sometimes doing a few laps first
-	else if (quarantee.feelingChatty) {
-
-			// Sometimes take a few laps first
-			willTakeLaps = Math.random(.2)
-			if (willTakeLaps) {
-				for(i = 0; i < quarantee.lapCount; i++){
-					actions.push(quarantee.takeALap)
-				}
-			}
-
-		actions.push(quarantee.enterSeatingArea)
-	}
-	// Otherwise they'll just do a few laps.
-	else {
-		for(i = 0; i < quarantee.lapCount; i++){
-					actions.push(quarantee.takeALap)
-				}
-	}
-
-	// Then leave
-	actions.push(quarantee.exit)
-
-	// Add actions to the queue
-	quarantee.actionQueue.push(actions)
-	print(quarantee.actionQueue)
-
+	quarantee.setActionQueue()
 }
 
 // Initialize function
@@ -435,9 +475,6 @@ function eventBeginPlay() {
 		quarantees.push(quarantee)
 		print(getQuaranteeStatus(quarantee) + "\n")
 	}
-
-
-
 }
 
 // Game loop function
@@ -455,7 +492,6 @@ function eventTick() {
 	for (quarantee of recArea.occupants) {
 		updateQuarantee(quarantee)
 	}
-
  }
 
 
