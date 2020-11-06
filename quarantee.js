@@ -1,5 +1,6 @@
 // Global variables
 var time = 0
+var gameSpeed = 1
 var quaranteeCount = 1
 var quarantees = []
 
@@ -434,7 +435,7 @@ function getQuaranteeStatus(quarantee) {
 function updateQuarantee(quarantee) {
 
 	// Increment quarantee time
-	quarantee.time += 1
+	quarantee.time += gameSpeed
 
 	// After the idle time do the next action
 	if( quarantee.time >= quarantee.lastActionTime + quarantee.idleTime ) {
