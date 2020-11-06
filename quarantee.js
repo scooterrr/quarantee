@@ -3,6 +3,10 @@ var time = 0
 var quaranteeCount = 5
 var quarantees = []
 
+var baseLapTime = 160
+var baseReadTime = 320
+var baseSmoketime = 160
+
 var recArea = null
 
 
@@ -114,13 +118,13 @@ function createQuarantee() {
 		age: null,
 		height: null,
 		weight: null,
-		isSmoker: null,
 
 		// Performance properties
 		stamina: null,
 		charisma: null,
 		intellect: null,
 		feelingChatty: false,
+		isSmoker: null,	
 		hasBook: false,
 		cigaretteCount: 0,
 		lapCount: 0,
@@ -128,13 +132,19 @@ function createQuarantee() {
 		// Game properties
 		isActive: false,
 		entryAnnounced: false,
-		time: 0,
 		state: null,
-		idleTime: 0,
 		state: null,
 		firstAction: true,
 		actionQueue: [],
 		firstLap: true,
+
+		// Timers
+		time: 0,
+		lastActionTime: null,
+		idleTime: null,
+		lapTime: null,
+		readingTime: null,
+		smokingTime: null,
 
 
 		// Quarantee functions
@@ -184,12 +194,12 @@ function createQuarantee() {
 
 			// TODO: Stamina determined by age, height, weight and smoking status
 			quarantee.stamina = function() {
-
+				return Math.floor(Math.random() * 100)
 			}()
 
 			// TODO: Charisma determined by age and smoking status
 			quarantee.charisma = function() {
-
+				return Math.floor(Math.random() * 100)
 			}()
 
 			// Intellect
@@ -198,6 +208,29 @@ function createQuarantee() {
 			// % chance of having a book.
 			quarantee.hasBook = function() {
 				return Math.random() < (quarantee.intellect / 100)
+			}()
+
+			// Determine how long it takes to do stuff
+			quarantee.lapTime = function() {
+				multiplier = 100 - quarantee.stamina // figure out multiplier
+				multiplier /= 100
+				fitnessModifier = 160 * multiplier
+				lapTime = baseLapTime + fitnessModifier
+				return lapTime
+			}()
+
+			quarantee.readingTime = function() {
+				multiplier = 100 - quarantee.intellect // figure out multiplier
+				multiplier /= 100
+				intellectModifier = 160 * multiplier
+				readingTime = baseReadTime + intellectModifier
+				return readingTime			
+			}()
+
+			quarantee.smokingTime = function() {
+				fitnessModifier = 160 *Math.random()
+				lapTime = baseSmoketime + fitnessModifier
+				return lapTime			
 			}()
 
 		},
@@ -218,14 +251,17 @@ function createQuarantee() {
 			}
 			print(str)
 			quarantee.state = "TakingLap"
+
 		},
 		enterSmokingArea: function() {
 			print("[Action] " + quarantee.name + " enters the smoking area.")
 			quarantee.state = "TravellingToSmokingArea"
+
 		},
 		enterSeatingArea: function() {
 			print("[Action] " + quarantee.name + " enters the seating area.")
 			quarantee.state = "TravellingToSeatingArea"
+
 		},
 		exit: function() {
 			print("[Action} " + quarantee.name + " leaves the rec area.")
@@ -311,11 +347,11 @@ function updateQuarantee(quarantee) {
 	// Increment quarantee time
 	quarantee.time += 1
 
-	// Is this their first action?
-	if (quarantee.firstAction) {
-		// print("[" + quarantee.name + "] Starts their first action") 
-		quarantee.firstAction = false
-	}
+	// After the idle time do the next action
+    var nextAction = quarantee.actionQueue.shift();
+    if(nextAction) { 
+        nextAction(); 
+    }
 }
 
 // Add a quarantee to the rec area
