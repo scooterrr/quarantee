@@ -1,7 +1,7 @@
 // Global variables
 var time = 0
 var gameSpeed = 2
-var quaranteeCount = 30
+var quaranteeCount = 4
 var quarantees = []
 
 var baseLapTime = 160
@@ -12,10 +12,10 @@ var recArea = null
 
 // Debug variables
 var debug = {
-	showActions: false,
+	showActions: true,
 	showGameUpdates: true,
-	showQuaranteeCreation: false,
-	showAreaUpdates: true,
+	showQuaranteeCreation: true,
+	showAreaUpdates: false,
 }
 
 
@@ -218,7 +218,7 @@ function createQuarantee() {
 			// Intellect
 			quarantee.intellect = getRandomInt(0, 100)
 
-			// If intellect is over 50 they are chatty
+			// If charisma is over 50 they are chatty
 			quarantee.isChatty = quarantee.charisma > 50
 
 			// % chance of having a book.
@@ -350,7 +350,7 @@ function createQuarantee() {
 		},
 		haveAChat: function(collocutors) {
 			str = "[Action] " + quarantee.name + " starts chatting to " + formatList(collocutors)
-			if (debug.showActions) {
+			if (!debug.showActions) {
 				print(str)
 			}
 			quarantee.state = "Chatting"
@@ -456,6 +456,7 @@ function createRecArea() {
 
 			smokingArea = recArea.smokingArea
 			chattyOccupants = []
+			collocutors = []
 
 			// If there are at least two people in the smoking area
 			if (smokingArea.occupants.length > 1) {
@@ -464,13 +465,17 @@ function createRecArea() {
 				}
 				// Add the chatty occupants to an array.
 				for (occupant of smokingArea.occupants){
-					chattyOccupants.push(occupant)
-					if (debug.showAreaUpdates) {
-						print ("[Area] " + occupant.name + " added to chatty occupants array.")
+					if (occupant.isChatty) {
+						chattyOccupants.push(occupant)
+						collocutors.push(occupant.name)
+						if (debug.showAreaUpdates) {
+							// print ("[Area] " + occupant.name + " added to chatty occupants array.")
+						}
+						// occupant.haveAChat(collocutors)
 					}
 				}
 
-				// If there are at least two people feeling chatty
+				// TODO: If there are at least two people feeling chatty
 				if (chattyOccupants.length > 1) {
 
 				}
