@@ -29,7 +29,7 @@ var maxHeight = 200
 var minWeight = 30
 var maxWeight = 80
 
-var smokerChance = 0.8
+var smokerChance = 0.2
 
 // Global Functions
 
