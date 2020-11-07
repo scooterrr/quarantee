@@ -400,6 +400,15 @@ function createRecArea() {
 			capacity: 6,
 			occupants: [],
 			isFull: false
+		},
+
+		// Rec area functions
+		updateSmokingArea: function() {
+
+		},
+
+		updateSittingArea: function() {
+			
 		}
 
 	}
@@ -492,6 +501,13 @@ function eventTick() {
 	for (quarantee of recArea.occupants) {
 		updateQuarantee(quarantee)
 	}
+
+	// Update smoking area
+	recArea.updateSmokingArea()
+
+	// Update sitting area
+	recArea.updateSittingArea()
+
  }
 
 
