@@ -470,6 +470,11 @@ function createRecArea() {
 					}
 				}
 
+				// If there are at least two people feeling chatty
+				if (chattyOccupants.length > 1) {
+
+				}
+
 			}
 
 		},
