@@ -1,7 +1,7 @@
 // Global variables
 var time = 0
 var gameSpeed = 2
-var quaranteeCount = 5
+var quaranteeCount = 30
 var quarantees = []
 
 var baseLapTime = 160
@@ -12,7 +12,7 @@ var recArea = null
 
 // Debug variables
 var debug = {
-	showActions: false,
+	showActions: true,
 	showGameUpdates: true,
 	showQuaranteeCreation: false,
 	showAreaUpdates: true,
@@ -281,6 +281,12 @@ function createQuarantee() {
 			}
 			quarantee.state = "TravellingToSmokingArea"
 
+			// Add quarantee to smoking area
+			recArea.smokingArea.occupants.push(quarantee)
+
+			// Update smoking area
+			recArea.updateSmokingArea()
+
 			// On entry
 
 			// Smoke however many cigarettes they brought
@@ -296,8 +302,25 @@ function createQuarantee() {
 
 		},
 		exit: function() {
+
+			// If quarantee was in the smoking area, remove them from occupant list
+			const index = recArea.smokingArea.occupants.indexOf(quarantee);
+			if (index > -1) {
+				// Print action
+				if (debug.showActions) {
+					print("[Action] " + quarantee.name + " leaves the smoking area.")
+				}
+				// Remove quarantee from smoking area
+				recArea.smokingArea.occupants.splice(index, 1)
+				
+				// Update smoking area
+				recArea.updateSmokingArea()
+
+			}
+
+			// Print action
 			if (debug.showActions) {
-				print("[Action} " + quarantee.name + " leaves the rec area.")
+				print("[Action] " + quarantee.name + " leaves the rec area.")
 			}
 			quarantee.state = null
 		},
@@ -431,17 +454,13 @@ function createRecArea() {
 		// Rec area functions
 		updateSmokingArea: function() {
 
+			smokingArea = recArea.smokingArea
 			// If there are at least two people in the smoking area
-			if (recArea.smokingArea.occupants > 1) {
-
-				// Add the chatty occupants to an array.
-				chattyOccupants = []
-				for (occupant of smokingArea.occupant) {
-					if (occupant.isChatty) {
-						chattyOccupants.push(occupant)
-						print(occupant.name + " added to chatty occupants")
-					}
+			if (smokingArea.occupants.length > 1) {
+				if (debug.showAreaUpdates) {
+					print ("[Area] " + smokingArea.occupants.length + " person(s) in the smoking area.")
 				}
+				// Add the chatty occupants to an array.
 
 			}
 
@@ -544,9 +563,6 @@ function eventTick() {
 	for (quarantee of recArea.occupants) {
 		updateQuarantee(quarantee)
 	}
-
-	// Update smoking area
-	recArea.updateSmokingArea()
 
 	// Update sitting area
 	recArea.updateSittingArea()
