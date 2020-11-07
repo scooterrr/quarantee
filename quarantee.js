@@ -134,7 +134,6 @@ function createQuarantee() {
 		isActive: false,
 		entryAnnounced: false,
 		state: null,
-		state: null,
 		firstAction: true,
 		actionQueue: [],
 		firstLap: true,
@@ -349,13 +348,13 @@ function createQuarantee() {
 			// If they are feeling chatty, and they aren't a smoker, they will go to the seating area. Sometimes doing a few laps first
 			else if (quarantee.feelingChatty) {
 
-					// Sometimes take a few laps first
-					willTakeLaps = Math.random(.2)
-					if (willTakeLaps) {
-						for(i = 0; i < quarantee.lapCount; i++){
-							actions.push(quarantee.takeALap)
-						}
+				// Sometimes take a few laps first
+				willTakeLaps = Math.random(.2)
+				if (willTakeLaps) {
+					for(i = 0; i < quarantee.lapCount; i++){
+						actions.push(quarantee.takeALap)
 					}
+				}
 
 				actions.push(quarantee.enterSeatingArea)
 			}
@@ -377,7 +376,7 @@ function createQuarantee() {
 			}
 		}
 	}
-	return quarantee
+	return quarantee   
 }
 
 // Create rec area
@@ -447,7 +446,7 @@ function updateQuarantee(quarantee) {
 			nextAction()
 			quarantee.lastActionTime = quarantee.time
 		}
-	}
+	}   
 }
 
 // Add a quarantee to the rec area
