@@ -12,7 +12,7 @@ var recArea = null
 
 // Debug variables
 var debug = {
-	showActions: true,
+	showActions: false,
 	showGameUpdates: true,
 	showQuaranteeCreation: false,
 	showAreaUpdates: true,
@@ -455,12 +455,20 @@ function createRecArea() {
 		updateSmokingArea: function() {
 
 			smokingArea = recArea.smokingArea
+			chattyOccupants = []
+
 			// If there are at least two people in the smoking area
 			if (smokingArea.occupants.length > 1) {
 				if (debug.showAreaUpdates) {
 					print ("[Area] " + smokingArea.occupants.length + " person(s) in the smoking area.")
 				}
 				// Add the chatty occupants to an array.
+				for (occupant of smokingArea.occupants){
+					chattyOccupants.push(occupant)
+					if (debug.showAreaUpdates) {
+						print ("[Area] " + occupant.name + " added to chatty occupants array.")
+					}
+				}
 
 			}
 
