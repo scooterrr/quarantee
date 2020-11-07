@@ -10,6 +10,14 @@ var baseSmoketime = 160
 
 var recArea = null
 
+// Debug variables
+var debug = {
+	showActions: false,
+	showGameUpdates: true,
+	showQuaranteeCreation: false,
+	showAreaUpdates: true,
+}
+
 
 // Global quarantee variables
 var minAge = 8
@@ -21,7 +29,7 @@ var maxHeight = 200
 var minWeight = 30
 var maxWeight = 80
 
-var smokerChance = 0.25
+var smokerChance = 0.8
 
 // Global Functions
 
@@ -245,7 +253,9 @@ function createQuarantee() {
 
 		// Primary quarantee actions
 		enter: function() {
-			print("[Action] " + quarantee.name + " enters the rec area.")
+			if (debug.showActions) {
+				print("[Action] " + quarantee.name + " enters the rec area.")
+			}
 			quarantee.isActive = true
 			quarantee.state = "EnteringRecArea"
 		},
@@ -258,13 +268,17 @@ function createQuarantee() {
 			else {
 				str += " takes another lap."
 			}
-			print(str)
+			if (debug.showActions) {
+				print(str)
+			}
 			quarantee.state = "TakingLap"
 			quarantee.idleTime = quarantee.lapTime
 
 		},
 		enterSmokingArea: function() {
-			print("[Action] " + quarantee.name + " heads to the smoking area.")
+			if (debug.showActions) {
+				print("[Action] " + quarantee.name + " heads to the smoking area.")
+			}
 			quarantee.state = "TravellingToSmokingArea"
 
 			// On entry
@@ -275,12 +289,16 @@ function createQuarantee() {
 			}
 		},
 		enterSeatingArea: function() {
-			print("[Action] " + quarantee.name + " heads to the seating area.")
+			if (debug.showActions) {
+				print("[Action] " + quarantee.name + " heads to the seating area.")
+			}
 			quarantee.state = "TravellingToSeatingArea"
 
 		},
 		exit: function() {
-			print("[Action} " + quarantee.name + " leaves the rec area.")
+			if (debug.showActions) {
+				print("[Action} " + quarantee.name + " leaves the rec area.")
+			}
 			quarantee.state = null
 		},
 
@@ -294,22 +312,30 @@ function createQuarantee() {
 			else {
 				str += " lights up another cigarette."
 			}
-			print(str)
+			if (debug.showActions) {
+				print(str)
+			}
 			quarantee.state = "Smoking"
 			quarantee.idleTime = quarantee.smokingTime
 		},
 		readABook: function(duration) {
-			print("[Action] " + quarantee.name + " starts reading a book.")
+			if (debug.showActions) {
+				print("[Action] " + quarantee.name + " starts reading a book.")
+			}
 			quarantee.state = "Reading"
 			quarantee.idleTime = quarantee.readingTime
 		},
 		haveAChat: function(collocutors) {
 			str = "[Action] " + quarantee.name + " starts chatting to " + formatList(collocutors)
-			print(str)
+			if (debug.showActions) {
+				print(str)
+			}
 			quarantee.state = "Chatting"
 		},
 		createChalkDrawing: function(location) {
-			print("[Action] " + quarantee.name + " starts a chalk drawing.")
+			if (debug.showActions) {
+				print("[Action] " + quarantee.name + " starts a chalk drawing.")
+			}
 			quarantee.state = "Drawing"
 		},
 
@@ -405,10 +431,24 @@ function createRecArea() {
 		// Rec area functions
 		updateSmokingArea: function() {
 
+			// If there are at least two people in the smoking area
+			if (recArea.smokingArea.occupants > 1) {
+
+				// Add the chatty occupants to an array.
+				chattyOccupants = []
+				for (occupant of smokingArea.occupant) {
+					if (occupant.isChatty) {
+						chattyOccupants.push(occupant)
+						print(occupant.name + " added to chatty occupants")
+					}
+				}
+
+			}
+
 		},
 
 		updateSittingArea: function() {
-			
+
 		}
 
 	}
@@ -482,7 +522,10 @@ function eventBeginPlay() {
 		quarantee = createQuarantee()
 		quarantee.initialize()
 		quarantees.push(quarantee)
-		print(getQuaranteeStatus(quarantee) + "\n")
+
+		if (debug.showQuaranteeCreation) {
+			print(getQuaranteeStatus(quarantee) + "\n")
+		}
 	}
 }
 
